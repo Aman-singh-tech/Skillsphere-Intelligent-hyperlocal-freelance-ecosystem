@@ -134,7 +134,14 @@ exports.forgotPassword = async (req, res, next) => {
     user.passwordResetExpires = Date.now() + 1000 * 60 * 30; // 30 min
     await user.save();
 
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    // Admins live on a separate frontend (frontend-admin) with its own
+    // domain, so route their reset link there instead of the client app.
+    const baseUrl =
+      user.role === "admin" && process.env.ADMIN_CLIENT_URL
+        ? process.env.ADMIN_CLIENT_URL
+        : process.env.CLIENT_URL;
+
+    const resetUrl = `${baseUrl}/reset-password/${resetToken}`;
     await sendEmail({
       to: user.email,
       subject: "Reset your SkillSphere password",
