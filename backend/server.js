@@ -21,17 +21,32 @@ const server = http.createServer(app);
 // identify individual users and throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
 app.set("trust proxy", 1);
 
+// ── Allowed frontend origins ─────────────────────────────────────────────
+// Two separate frontends (client + admin) each need CORS access, so we
+// build an allow-list instead of trusting a single CLIENT_URL.
+const allowedOrigins = [process.env.CLIENT_URL, process.env.ADMIN_CLIENT_URL].filter(Boolean);
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow no-origin requests (curl, server-to-server, health checks) and
+    // any origin explicitly listed above. Fall back to allow-all only if
+    // no origins were configured at all (e.g. early local dev).
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  credentials: true,
+};
+
 // ── Socket.IO (Module 6, 11) ─────────────────────────────────────────────
-const io = new Server(server, {
-  cors: { origin: process.env.CLIENT_URL || "*", credentials: true },
-});
+const io = new Server(server, { cors: corsOptions });
 initSocket(io);
 // Make io available to controllers if they need to emit directly
 app.set("io", io);
 
 // ── Security middleware (Week 4: "Security improvements") ───────────────
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || "*", credentials: true }));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize()); // strips $/., prevents NoSQL injection
