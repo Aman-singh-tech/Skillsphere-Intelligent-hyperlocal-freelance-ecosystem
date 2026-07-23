@@ -37,6 +37,9 @@ export const authApi = {
   },
   logout: () => setToken(null),
   me: () => request("/auth/me"),
+  forgotPassword: (email) => request("/auth/forgot-password", { method: "POST", body: { email }, auth: false }),
+  resetPassword: (token, password) =>
+    request(`/auth/reset-password/${token}`, { method: "POST", body: { password }, auth: false }),
 };
 
 export const adminApi = {
