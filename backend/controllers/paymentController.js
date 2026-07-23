@@ -110,8 +110,8 @@ exports.releasePayment = async (req, res, next) => {
     if (String(payment.client) !== String(req.user._id)) {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
-    if (payment.status !== "escrow_held") {
-      return res.status(400).json({ success: false, message: "Payment is not in escrow" });
+    if (payment.status !== "escrow_held" && payment.status !== "disputed") {
+      return res.status(400).json({ success: false, message: "Payment is not in escrow or disputed" });
     }
 
     payment.status = "released";

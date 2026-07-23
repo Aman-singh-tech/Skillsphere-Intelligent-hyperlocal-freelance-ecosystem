@@ -114,9 +114,15 @@ function ClientDashboardView({ user, onOpenChat, }) {
     }
 
     async function handleReleasePayment(paymentId) {
-        await paymentApi.release(paymentId);
-        loadPayments();
-        loadMyGigs();
+        try {
+            await paymentApi.release(paymentId);
+            loadPayments();
+            loadMyGigs();
+            alert("Payment released successfully!");
+        } catch (err) {
+            alert("Failed to release payment: " + (err.message || "Unknown error"));
+            console.error("Release Payment Error:", err);
+        }
     }
 
     function loadDisputes() {
@@ -439,7 +445,7 @@ function ClientDashboardView({ user, onOpenChat, }) {
                                         {!pay && g.status !== "completed" && g.status !== "cancelled" && (
                                           <button onClick={() => handleFundMilestone(g._id, m)} className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-lg font-medium hover:bg-primary/90">Fund escrow (₹{m.amount})</button>
                                         )}
-                                        {pay?.status === "escrow_held" && (
+                                        {(pay?.status === "escrow_held" || pay?.status === "disputed") && (
                                           <button onClick={() => handleReleasePayment(pay._id)} className="text-xs bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-emerald-700">Release payment</button>
                                         )}
                                         {pay?.status === "released" && (
@@ -461,7 +467,7 @@ function ClientDashboardView({ user, onOpenChat, }) {
                                     {!pay && (
                                       <button onClick={() => handleFundMilestone(g._id, { _id: undefined, amount })} className="text-xs bg-primary text-primary-foreground px-3.5 py-1.5 rounded-lg font-medium hover:bg-primary/90">Fund escrow (₹{amount})</button>
                                     )}
-                                    {pay?.status === "escrow_held" && (
+                                    {(pay?.status === "escrow_held" || pay?.status === "disputed") && (
                                       <button onClick={() => handleReleasePayment(pay._id)} className="text-xs bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg font-medium hover:bg-emerald-700">Release payment</button>
                                     )}
                                     {pay?.status === "released" && (

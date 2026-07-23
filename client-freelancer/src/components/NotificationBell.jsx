@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { notificationApi } from "../lib/api";
 import { connectSocket } from "../lib/socket";
 
@@ -52,8 +52,11 @@ export default function NotificationBell({ user }) {
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-80 bg-white border border-border rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto">
-          <div className="px-4 py-3 border-b border-border">
+          <div className="px-4 py-3 border-b border-border flex justify-between items-center">
             <p className="text-sm font-semibold text-foreground">Notifications</p>
+            <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
+              <X size={14} />
+            </button>
           </div>
           {notifications.length === 0 ? (
             <p className="text-xs text-muted-foreground px-4 py-6 text-center">No notifications yet.</p>
