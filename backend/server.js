@@ -16,9 +16,16 @@ const { initSocket } = require("./socket/socketHandler");
 const app = express();
 const server = http.createServer(app);
 
+// Determine allowed origins (filter out undefined)
+const allowedOrigins = [process.env.CLIENT_URL, process.env.ADMIN_URL].filter(Boolean);
+// If no origins provided, fallback to localhost for development
+if (allowedOrigins.length === 0) {
+  allowedOrigins.push("http://localhost:5173", "http://localhost:5174");
+}
+
 // ── Socket.IO (Module 6, 11) ─────────────────────────────────────────────
 const io = new Server(server, {
-  cors: { origin: process.env.CLIENT_URL || "*", credentials: true },
+  cors: { origin: allowedOrigins, credentials: true },
 });
 initSocket(io);
 // Make io available to controllers if they need to emit directly
@@ -26,7 +33,7 @@ app.set("io", io);
 
 // ── Security middleware (Week 4: "Security improvements") ───────────────
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || "*", credentials: true }));
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize()); // strips $/., prevents NoSQL injection
