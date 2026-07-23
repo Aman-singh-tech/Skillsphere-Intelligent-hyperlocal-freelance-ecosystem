@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* SkillSphere design tokens */
+:root {
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #1D4ED8;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EFF6FF;
+  --secondary-foreground: #1E40AF;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: #06B6D4;
+  --accent-foreground: #FFFFFF;
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(15, 23, 42, 0.1);
+  --input: transparent;
+  --input-background: #F1F5F9;
+  --switch-background: #CBD5E1;
+  --ring: #93C5FD;
+  --chart-1: #1D4ED8;
+  --chart-2: #06B6D4;
+  --chart-3: #7C3AED;
+  --chart-4: #059669;
+  --chart-5: #D97706;
+  --radius: 0.5rem;
+  --sidebar: #0F172A;
+  --sidebar-foreground: #F8FAFC;
+  --sidebar-primary: #3B82F6;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1E293B;
+  --sidebar-accent-foreground: #E2E8F0;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #3B82F6;
+}
+
+body {
+  font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+}
+
+.bg-background { background-color: var(--background); }
+.bg-card { background-color: var(--card); }
+.bg-muted { background-color: var(--muted); }
+.bg-primary { background-color: var(--primary); }
+.bg-secondary { background-color: var(--secondary); }
+.bg-border { background-color: var(--border); }
+.bg-sidebar { background-color: var(--sidebar); }
+.bg-sidebar-accent { background-color: var(--sidebar-accent); }
+.bg-sidebar-border { background-color: var(--sidebar-border); }
+.bg-sidebar-primary { background-color: var(--sidebar-primary); }
+.text-foreground { color: var(--foreground); }
+.text-muted-foreground { color: var(--muted-foreground); }
+.text-primary { color: var(--primary); }
+.text-secondary-foreground { color: var(--secondary-foreground); }
+.text-sidebar-accent-foreground { color: var(--sidebar-accent-foreground); }
+.text-sidebar-foreground { color: var(--sidebar-foreground); }
+.border-border { border-color: var(--border); }
+.border-primary { border-color: var(--primary); }
+.border-sidebar-border { border-color: var(--sidebar-border); }
+.ring-primary { --tw-ring-color: var(--primary); }
