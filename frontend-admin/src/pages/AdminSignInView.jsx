@@ -14,6 +14,7 @@ function AdminSignInView({ setView, onAuthSuccess, }) {
     const [formError, setFormError] = useState("");
     const [loading, setLoading] = useState(false);
     const [method, setMethod] = useState("app");
+    const [forgotPasswordStatus, setForgotPasswordStatus] = useState("");
     async function handleCredentials(e) {
         e.preventDefault();
         setFormError("");
@@ -70,6 +71,20 @@ function AdminSignInView({ setView, onAuthSuccess, }) {
             onAuthSuccess(me.user);
         } catch (err) {
             setOtpError(true);
+        } finally {
+            setLoading(false);
+        }
+    }
+    async function handleForgotPassword(e) {
+        e.preventDefault();
+        setFormError("");
+        setForgotPasswordStatus("");
+        setLoading(true);
+        try {
+            await authApi.forgotPassword(email);
+            setForgotPasswordStatus("Password reset link sent to your email.");
+        } catch (err) {
+            setFormError(err.message || "Failed to send reset link");
         } finally {
             setLoading(false);
         }
@@ -210,7 +225,11 @@ function AdminSignInView({ setView, onAuthSuccess, }) {
                     <label className="block text-sm font-semibold text-foreground">
                       Password
                     </label>
-                    <button type="button" className="text-xs text-primary hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => { setStep("forgot_password"); setFormError(""); setForgotPasswordStatus(""); }}
+                      className="text-xs text-primary hover:underline"
+                    >
                       Forgot password?
                     </button>
                   </div>
@@ -251,6 +270,49 @@ function AdminSignInView({ setView, onAuthSuccess, }) {
               <p className="text-sm text-center text-muted-foreground mt-6">
                 Admin access is invite-only. Contact your platform owner if you need an account.
               </p>
+            </>)}
+
+          {step === "forgot_password" && (<>
+              <button onClick={() => { setStep("credentials"); setFormError(""); setForgotPasswordStatus(""); }} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors">
+                <ChevronLeft size={15}/> Back to sign in
+              </button>
+
+              <div className="mb-8">
+                <h1 className="text-2xl font-extrabold text-foreground mb-1">
+                  Reset Password
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Enter your admin email to receive a password reset link
+                </p>
+              </div>
+
+              {formError && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">{formError}</p>
+              )}
+              {forgotPasswordStatus && (
+                <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-4">{forgotPasswordStatus}</p>
+              )}
+
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-foreground mb-1.5">
+                    Email address
+                  </label>
+                  <div className="flex items-center gap-2.5 bg-card border border-border rounded-xl px-4 py-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                    <Mail size={15} className="text-muted-foreground flex-shrink-0"/>
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" required className="flex-1 text-sm bg-transparent outline-none text-foreground placeholder:text-muted-foreground"/>
+                  </div>
+                </div>
+
+                <button type="submit" disabled={loading || !email} className="w-full bg-primary text-white font-semibold py-3 rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-60">
+                  {loading ? (<>
+                      <RotateCcw size={15} className="animate-spin"/>{" "}
+                      Sending…
+                    </>) : (<>
+                      <Mail size={15}/> Send Reset Link
+                    </>)}
+                </button>
+              </form>
             </>)}
 
           {step === "2fa" && (<>
