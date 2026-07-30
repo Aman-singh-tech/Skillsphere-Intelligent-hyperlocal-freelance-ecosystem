@@ -27,14 +27,24 @@ async function sendEmail({ to, subject, html }) {
   }
 
   try {
-    return await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: process.env.EMAIL_FROM || "SkillSphere <no-reply@skillsphere.app>",
       to,
       subject,
       html,
     });
+    console.log(`✅ Email successfully sent!`);
+    console.log(`   To      : ${info.accepted?.join(", ") || to}`);
+    console.log(`   Subject : ${subject}`);
+    console.log(`   MsgID   : ${info.messageId}`);
+    return info;
   } catch (err) {
-    console.error(`⚠️  Email send failed (non-fatal, request continues): ${err.message}`);
+    console.error(`\n❌ EMAIL SEND FAILED!`);
+    console.error(`   To      : ${to}`);
+    console.error(`   Subject : ${subject}`);
+    console.error(`   Error   : ${err.message}`);
+    console.error(`   Code    : ${err.code || "N/A"}`);
+    console.error(`   (Hint: Check SMTP credentials in .env or Gmail App Password)\n`);
     return { failed: true, error: err.message };
   }
 }
