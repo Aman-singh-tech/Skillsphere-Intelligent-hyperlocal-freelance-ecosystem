@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Home, Briefcase, Sparkles, Zap, Package, FileText, AlertTriangle, CreditCard, CheckCircle, CircleCheck, Clock, Lock, MessageSquare, Activity, Star, X } from "lucide-react";
 import { pill } from "../utils/constants";
 import { gigApi, proposalApi, reviewApi, disputeApi, paymentApi } from "../lib/api";
+import { getSocket } from "../lib/socket";
 import Avatar from "../components/Avatar";
 import StatCard from "../components/StatCard";
 import SectionHeader from "../components/SectionHeader";
@@ -203,6 +204,27 @@ function ClientDashboardView({ user, onOpenChat, }) {
     }
 
     useEffect(() => { loadMyGigs(); loadDisputes(); loadPayments(); }, []);
+
+    const selectedGigIdRef = useRef(selectedGigId);
+    useEffect(() => {
+        selectedGigIdRef.current = selectedGigId;
+    }, [selectedGigId]);
+
+    useEffect(() => {
+        const socket = getSocket();
+        if (socket) {
+            const handleProposalNew = () => {
+                loadMyGigs();
+                if (selectedGigIdRef.current) {
+                    loadProposals(selectedGigIdRef.current);
+                }
+            };
+            socket.on("proposal:new", handleProposalNew);
+            return () => {
+                socket.off("proposal:new", handleProposalNew);
+            };
+        }
+    }, []);
 
     async function handlePostGig(e) {
         e.preventDefault();

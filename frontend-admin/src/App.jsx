@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { authApi, getToken, setToken } from "./lib/api";
+import { connectSocket, disconnectSocket } from "./lib/socket";
 
 import AdminNavbar from "./components/AdminNavbar";
 import AdminDashboardView from "./pages/AdminDashboardView";
@@ -30,6 +31,7 @@ export default function App() {
           const data = await authApi.me();
           if (data.user.role === "admin") {
             setAdminUser(data.user);
+            connectSocket();
             setView("admin");
           } else {
             setToken(null);
@@ -44,11 +46,13 @@ export default function App() {
 
   function handleAuthSuccess(user) {
     setAdminUser(user);
+    connectSocket();
     setView("admin");
   }
 
   function handleLogout() {
     authApi.logout();
+    disconnectSocket();
     setAdminUser(null);
     setView("signin");
   }

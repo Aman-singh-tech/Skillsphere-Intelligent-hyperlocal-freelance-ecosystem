@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Shield, TrendingUp, Users, Briefcase, CheckCircle, BarChart2, AlertTriangle, Package, CircleCheck } from "lucide-react";
 import { pill } from "../utils/constants";
 import { adminApi } from "../lib/api";
+import { getSocket } from "../lib/socket";
 import StatCard from "../components/StatCard";
 import SectionHeader from "../components/SectionHeader";
 import StatusBadge from "../components/StatusBadge";
@@ -39,6 +40,19 @@ function AdminDashboardView() {
         loadUsers();
         loadPendingGigs();
         loadDisputes();
+
+        const socket = getSocket();
+        if (socket) {
+            const handleRefresh = () => {
+                loadAnalytics();
+                loadPendingGigs();
+                loadDisputes();
+            };
+            socket.on("admin:refresh", handleRefresh);
+            return () => {
+                socket.off("admin:refresh", handleRefresh);
+            };
+        }
     }, []);
 
     async function handleSuspend(id) {

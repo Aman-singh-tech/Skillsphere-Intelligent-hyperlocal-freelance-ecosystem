@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Home, Briefcase, UserCheck, MessageSquare, Star, Award, DollarSign, Eye, FileText, AlertTriangle, X } from "lucide-react";
 import { pill } from "../utils/constants";
 import { userApi, proposalApi, reviewApi, disputeApi, gigApi } from "../lib/api";
+import { getSocket } from "../lib/socket";
 import Avatar from "../components/Avatar";
 import StatCard from "../components/StatCard";
 import SectionHeader from "../components/SectionHeader";
@@ -97,6 +98,25 @@ function FreelancerDashboardView({ user, onOpenChat, }) {
             reviewApi.forUser(user.id || user._id).then((d) => setMyReviews(d.reviews || [])).catch(() => setMyReviews([]));
         }
         setLoadingProposals(false);
+
+        const socket = getSocket();
+        if (socket) {
+            const handleStatusUpdate = ({ status, gigTitle }) => {
+                loadProposals();
+                // Show a brief browser notification toast via title flicker
+                const prev = document.title;
+                if (status === "accepted") {
+                    document.title = `🎉 Proposal Accepted! — ${gigTitle}`;
+                } else {
+                    document.title = `Proposal Update — ${gigTitle}`;
+                }
+                setTimeout(() => { document.title = prev; }, 5000);
+            };
+            socket.on("proposal:statusUpdate", handleStatusUpdate);
+            return () => {
+                socket.off("proposal:statusUpdate", handleStatusUpdate);
+            };
+        }
     }, []);
 
     function startEditProfile() {

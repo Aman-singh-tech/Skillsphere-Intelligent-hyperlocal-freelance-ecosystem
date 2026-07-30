@@ -19,6 +19,11 @@ exports.createGig = async (req, res, next) => {
     req.user.clientProfile.gigsPosted += 1;
     await req.user.save();
 
+    const io = req.app.get("io");
+    if (io) {
+      io.to("admin_room").emit("admin:refresh");
+    }
+
     res.status(201).json({ success: true, gig });
   } catch (err) {
     next(err);

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Home, Briefcase, Users, UserCheck, LogIn, UserPlus, Menu, X, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Home, Briefcase, Users, UserCheck, LogIn, UserPlus, Menu, X, Sparkles, Sun, Moon } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 
 export default function Navbar({ view, setView, user, onLogout }) {
@@ -10,8 +10,33 @@ export default function Navbar({ view, setView, user, onLogout }) {
     ...(user?.role === "freelancer" ? [{ label: "Dashboard", v: "freelancer", icon: Users }] : []),
     ...(user?.role === "client" ? [{ label: "Dashboard", v: "client", icon: UserCheck }] : []),
   ];
+
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    // Check initial preference
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    if (isDarkMode) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setIsDarkMode(true);
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-border">
+    <header className="sticky top-0 z-50 bg-background/90 backdrop-blur border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-16 gap-6">
         {/* Logo */}
         <button onClick={() => setView("landing")} className="flex items-center gap-2 flex-shrink-0">
@@ -40,6 +65,13 @@ export default function Navbar({ view, setView, user, onLogout }) {
         </nav>
 
         <div className="hidden md:flex items-center gap-2 ml-auto">
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors mr-2"
+            aria-label="Toggle dark mode"
+          >
+            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
           {user ? (
             <>
               <NotificationBell user={user} />
@@ -79,7 +111,16 @@ export default function Navbar({ view, setView, user, onLogout }) {
         </button>
       </div>
       {menuOpen && (
-        <div className="md:hidden border-t border-border bg-white px-4 py-3 flex flex-col gap-1">
+        <div className="md:hidden border-t border-border bg-background px-4 py-3 flex flex-col gap-1">
+          <div className="flex items-center justify-between px-3 py-2">
+            <span className="text-sm font-medium text-muted-foreground">Dark Mode</span>
+            <button
+              onClick={toggleDarkMode}
+              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors"
+            >
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </div>
           {navLinks.map(({ label, v, icon: Icon }) => (
             <button
               key={v}

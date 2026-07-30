@@ -14,6 +14,7 @@ function initSocket(io) {
       if (!token) return next(new Error("Authentication required"));
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       socket.userId = decoded.id;
+      socket.role = decoded.role;
       next();
     } catch (err) {
       next(new Error("Invalid token"));
@@ -26,6 +27,9 @@ function initSocket(io) {
     onlineUsers.get(userId).add(socket.id);
 
     socket.join(`user:${userId}`);
+    if (socket.role === "admin") {
+      socket.join("admin_room");
+    }
     io.emit("presence:update", { userId, online: true });
 
     // ── Instant messaging ──────────────────────────────────

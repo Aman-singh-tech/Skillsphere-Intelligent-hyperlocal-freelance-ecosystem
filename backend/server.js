@@ -74,7 +74,7 @@ app.use((req, res) => res.status(404).json({ success: false, message: "Route not
 app.use(errorHandler);
 
 // ── Boot ──────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 connectDB().then(() => {
   server.listen(PORT, () => {

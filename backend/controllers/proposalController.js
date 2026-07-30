@@ -36,6 +36,13 @@ exports.submitProposal = async (req, res, next) => {
       link: `/gigs/${gig._id}/proposals`,
     });
 
+    const io = req.app.get("io");
+    if (io) {
+      io.to("admin_room").emit("admin:refresh");
+      io.to(`user:${gig.client}`).emit("notification:new");
+      io.to(`user:${gig.client}`).emit("proposal:new");
+    }
+
     res.status(201).json({ success: true, proposal });
   } catch (err) {
     if (err.code === 11000) {
@@ -135,6 +142,20 @@ exports.acceptProposal = async (req, res, next) => {
       link: `/gigs/${gig._id}`,
     });
 
+    const io = req.app.get("io");
+    if (io) {
+      // Notify the accepted freelancer
+      io.to(`user:${proposal.freelancer}`).emit("notification:new");
+      io.to(`user:${proposal.freelancer}`).emit("proposal:statusUpdate", { status: "accepted", gigTitle: gig.title });
+      // Also notify all other rejected freelancers
+      const rejectedProposals = await Proposal.find({ gig: gig._id, _id: { $ne: proposal._id } }).select("freelancer");
+      rejectedProposals.forEach((rp) => {
+        io.to(`user:${rp.freelancer}`).emit("proposal:statusUpdate", { status: "rejected", gigTitle: gig.title });
+      });
+      // Refresh admin
+      io.to("admin_room").emit("admin:refresh");
+    }
+
     res.json({ success: true, proposal, gig });
   } catch (err) {
     next(err);
@@ -150,6 +171,12 @@ exports.rejectProposal = async (req, res, next) => {
     }
     proposal.status = "rejected";
     await proposal.save();
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`user:${proposal.freelancer}`).emit("proposal:statusUpdate", { status: "rejected", gigTitle: proposal.gig.title });
+    }
+
     res.json({ success: true, proposal });
   } catch (err) {
     next(err);
