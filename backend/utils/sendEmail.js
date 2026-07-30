@@ -1,50 +1,49 @@
-const nodemailer = require("nodemailer");
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
-  auth: process.env.SMTP_USER
-    ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-    : undefined,
-  connectionTimeout: 8000, // fail fast instead of hanging for minutes
-  greetingTimeout: 8000,
-  socketTimeout: 8000,
-});
+const { Resend } = require("resend");
 
 /**
- * Sends an email. Never throws and never blocks the caller for long —
- * email delivery is a nice-to-have, not something that should be able to
- * fail a registration/login/reset request. If SMTP isn't configured, or
- * the SMTP server is unreachable/misconfigured, this logs the issue and
- * resolves gracefully instead of bubbling an error up.
+ * Sends an email via Resend HTTP API (works on Render free tier).
+ * Falls back to console log in development when RESEND_API_KEY is not set.
+ * Never throws — email failure should never break a request.
  */
 async function sendEmail({ to, subject, html }) {
-  if (!process.env.SMTP_USER) {
-    console.log("\n📧 [DEV MODE — no SMTP configured] Email not actually sent:");
-    console.log(`   To: ${to}\n   Subject: ${subject}\n   Body: ${html}\n`);
+  // ── DEV MODE: no API key configured ─────────────────────────────────
+  if (!process.env.RESEND_API_KEY) {
+    console.log("\n📧 [DEV MODE — no RESEND_API_KEY] Email not actually sent:");
+    console.log(`   To      : ${to}`);
+    console.log(`   Subject : ${subject}`);
+    console.log(`   Body    : ${html}\n`);
     return { devMode: true };
   }
 
+  // ── PRODUCTION: send via Resend HTTP API ─────────────────────────────
   try {
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || "SkillSphere <no-reply@skillsphere.app>",
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || "SkillSphere <onboarding@resend.dev>",
       to,
       subject,
       html,
     });
-    console.log(`✅ Email successfully sent!`);
-    console.log(`   To      : ${info.accepted?.join(", ") || to}`);
+
+    if (error) {
+      console.error(`\n❌ EMAIL SEND FAILED (Resend API error)!`);
+      console.error(`   To      : ${to}`);
+      console.error(`   Subject : ${subject}`);
+      console.error(`   Error   : ${JSON.stringify(error)}\n`);
+      return { failed: true, error };
+    }
+
+    console.log(`✅ Email successfully sent via Resend!`);
+    console.log(`   To      : ${to}`);
     console.log(`   Subject : ${subject}`);
-    console.log(`   MsgID   : ${info.messageId}`);
-    return info;
+    console.log(`   MsgID   : ${data?.id}`);
+    return data;
   } catch (err) {
     console.error(`\n❌ EMAIL SEND FAILED!`);
     console.error(`   To      : ${to}`);
     console.error(`   Subject : ${subject}`);
-    console.error(`   Error   : ${err.message}`);
-    console.error(`   Code    : ${err.code || "N/A"}`);
-    console.error(`   (Hint: Check SMTP credentials in .env or Gmail App Password)\n`);
+    console.error(`   Error   : ${err.message}\n`);
     return { failed: true, error: err.message };
   }
 }
