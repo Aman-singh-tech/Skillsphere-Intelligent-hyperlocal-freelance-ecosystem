@@ -22,9 +22,9 @@ export default function LandingView({ setView }) {
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#1D4ED8] text-white">
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-60"
           style={{
-            backgroundImage: `url(https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1600&h=700&fit=crop&auto=format)`,
+            backgroundImage: `url(https://images.unsplash.com/photo-1758518727613-00192aed759b?q=80&w=1031&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
