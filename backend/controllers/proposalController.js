@@ -106,6 +106,12 @@ exports.negotiateProposal = async (req, res, next) => {
       link: `/proposals/${proposal._id}`,
     });
 
+    // Notify the freelancer in real-time so the bell updates without a refresh
+    const io = req.app.get("io");
+    if (io) {
+      io.to(`user:${proposal.freelancer}`).emit("notification:new");
+    }
+
     res.json({ success: true, proposal });
   } catch (err) {
     next(err);

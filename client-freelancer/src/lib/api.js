@@ -1,11 +1,11 @@
 const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 function getToken() {
-  return sessionStorage.getItem("skillsphere_token");
+  return localStorage.getItem("skillsphere_token");
 }
 function setToken(token) {
-  if (token) sessionStorage.setItem("skillsphere_token", token);
-  else sessionStorage.removeItem("skillsphere_token");
+  if (token) localStorage.setItem("skillsphere_token", token);
+  else localStorage.removeItem("skillsphere_token");
 }
 
 async function request(path, { method = "GET", body, auth = true, isForm = false } = {}) {

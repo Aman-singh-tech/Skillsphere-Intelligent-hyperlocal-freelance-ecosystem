@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Home, Briefcase, UserCheck, MessageSquare, Star, Award, DollarSign, Eye, FileText, AlertTriangle, X } from "lucide-react";
 import { pill } from "../utils/constants";
 import { userApi, proposalApi, reviewApi, disputeApi, gigApi } from "../lib/api";
-import { getSocket } from "../lib/socket";
+import { getSocket, connectSocket } from "../lib/socket";
 import Avatar from "../components/Avatar";
 import StatCard from "../components/StatCard";
 import SectionHeader from "../components/SectionHeader";
@@ -99,24 +99,35 @@ function FreelancerDashboardView({ user, onOpenChat, }) {
         }
         setLoadingProposals(false);
 
-        const socket = getSocket();
-        if (socket) {
-            const handleStatusUpdate = ({ status, gigTitle }) => {
-                loadProposals();
-                // Show a brief browser notification toast via title flicker
-                const prev = document.title;
-                if (status === "accepted") {
-                    document.title = `🎉 Proposal Accepted! — ${gigTitle}`;
-                } else {
-                    document.title = `Proposal Update — ${gigTitle}`;
-                }
-                setTimeout(() => { document.title = prev; }, 5000);
-            };
+        // Use connectSocket() instead of getSocket() to avoid the race condition
+        // where getSocket() returns null before the socket has connected.
+        const socket = connectSocket();
+
+        const handleStatusUpdate = ({ status, gigTitle }) => {
+            loadProposals();
+            // Show a brief browser notification toast via title flicker
+            const prev = document.title;
+            if (status === "accepted") {
+                document.title = `🎉 Proposal Accepted! — ${gigTitle}`;
+            } else {
+                document.title = `Proposal Update — ${gigTitle}`;
+            }
+            setTimeout(() => { document.title = prev; }, 5000);
+        };
+
+        // Register immediately (socket.io queues listeners even before connect)
+        socket.on("proposal:statusUpdate", handleStatusUpdate);
+
+        // Also re-register after every reconnect so listeners survive network drops
+        socket.on("connect", () => {
+            socket.off("proposal:statusUpdate", handleStatusUpdate);
             socket.on("proposal:statusUpdate", handleStatusUpdate);
-            return () => {
-                socket.off("proposal:statusUpdate", handleStatusUpdate);
-            };
-        }
+        });
+
+        return () => {
+            socket.off("proposal:statusUpdate", handleStatusUpdate);
+            socket.off("connect");
+        };
     }, []);
 
     function startEditProfile() {

@@ -39,7 +39,17 @@ const corsOptions = {
 };
 
 // ── Socket.IO (Module 6, 11) ─────────────────────────────────────────────
-const io = new Server(server, { cors: corsOptions });
+const io = new Server(server, {
+  cors: corsOptions,
+  // Explicitly allow both transports so Render's reverse proxy doesn't block
+  // the WebSocket upgrade. The client will prefer WebSocket and fall back to
+  // polling automatically when needed.
+  transports: ["websocket", "polling"],
+  // Keep-alive tuning: Render's free tier closes idle connections after ~30 s,
+  // so ping frequently enough to keep the socket alive.
+  pingTimeout: 20000,
+  pingInterval: 10000,
+});
 initSocket(io);
 // Make io available to controllers if they need to emit directly
 app.set("io", io);

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Home, Briefcase, Sparkles, Zap, Package, FileText, AlertTriangle, CreditCard, CheckCircle, CircleCheck, Clock, Lock, MessageSquare, Activity, Star, X } from "lucide-react";
 import { pill } from "../utils/constants";
 import { gigApi, proposalApi, reviewApi, disputeApi, paymentApi } from "../lib/api";
-import { getSocket } from "../lib/socket";
+import { getSocket, connectSocket } from "../lib/socket";
 import Avatar from "../components/Avatar";
 import StatCard from "../components/StatCard";
 import SectionHeader from "../components/SectionHeader";
@@ -211,19 +211,30 @@ function ClientDashboardView({ user, onOpenChat, }) {
     }, [selectedGigId]);
 
     useEffect(() => {
-        const socket = getSocket();
-        if (socket) {
-            const handleProposalNew = () => {
-                loadMyGigs();
-                if (selectedGigIdRef.current) {
-                    loadProposals(selectedGigIdRef.current);
-                }
-            };
+        // Use connectSocket() to avoid the race condition where getSocket()
+        // returns null before the socket has finished connecting on mount.
+        const socket = connectSocket();
+
+        const handleProposalNew = () => {
+            loadMyGigs();
+            if (selectedGigIdRef.current) {
+                loadProposals(selectedGigIdRef.current);
+            }
+        };
+
+        // Register immediately — socket.io buffers events until connected
+        socket.on("proposal:new", handleProposalNew);
+
+        // Re-register after every reconnect so listener survives network drops
+        socket.on("connect", () => {
+            socket.off("proposal:new", handleProposalNew);
             socket.on("proposal:new", handleProposalNew);
-            return () => {
-                socket.off("proposal:new", handleProposalNew);
-            };
-        }
+        });
+
+        return () => {
+            socket.off("proposal:new", handleProposalNew);
+            socket.off("connect");
+        };
     }, []);
 
     async function handlePostGig(e) {
