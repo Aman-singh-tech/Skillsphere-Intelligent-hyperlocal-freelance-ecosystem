@@ -170,8 +170,26 @@ function SignInView({ setView, onAuthSuccess, }) {
                   Sign in to your SkillSphere account
                 </p>
               </div>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => window.location.assign(authApi.googleLoginUrl())}
+                className="w-full flex items-center justify-center gap-3 bg-card border border-border text-foreground font-semibold text-sm py-3 rounded-xl hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+                  <path fill="#4285F4" d="M43.61 24.46c0-1.36-.12-2.66-.35-3.92H24v7.43h11c-.48 2.4-1.88 4.43-3.96 5.79v4.81h6.38c3.74-3.44 6.19-8.53 6.19-14.11Z" />
+                  <path fill="#34A853" d="M24 44c5.4 0 9.93-1.79 13.24-4.87l-6.38-4.81c-1.79 1.2-4.08 1.93-6.86 1.93-5.21 0-9.63-3.51-11.21-8.24H6.2v4.96C9.49 39.51 16.22 44 24 44Z" />
+                  <path fill="#FBBC05" d="M12.79 28.01A12 12 0 0 1 12.16 24c0-1.4.24-2.76.63-4.01v-4.96H6.2A20 20 0 0 0 4 24c0 3.22.79 6.27 2.2 8.97l6.59-4.96Z" />
+                  <path fill="#EA4335" d="M24 11.75c3.02 0 5.72 1.04 7.85 3.08l5.85-5.85C34.16 5.69 29.64 4 24 4 16.22 4 9.49 8.49 6.2 15.03l6.59 4.96C14.37 15.26 18.79 11.75 24 11.75Z" />
+                </svg>
+                Continue with Google
+              </button>
 
-
+              <div className="flex items-center gap-4 my-6" aria-hidden="true">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">or sign in with email</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
 
               {/* Form */}
               {formError && (
